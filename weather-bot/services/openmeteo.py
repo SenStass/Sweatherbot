@@ -1,0 +1,65 @@
+import httpx
+
+from config import LAT, LON
+
+URL = "https://api.open-meteo.com/v1/forecast"
+
+MODELS = {
+    "ecmwf": "ecmwf_ifs025",
+    "icon": "icon_seamless",
+    "gfs": "gfs_seamless",
+}
+
+
+def fetch_forecast() -> dict:
+    params = {
+        "latitude": LAT,
+        "longitude": LON,
+        "hourly": [
+            "temperature_2m",
+            "precipitation_probability",
+            "wind_speed_10m",
+        ],
+        "forecast_days": 3,
+    }
+
+    response = httpx.get(URL, params=params, timeout=15.0)
+    response.raise_for_status()
+    data = response.json()
+
+    if "hourly" not in data:
+        reason = data.get("reason", "unknown error")
+        raise RuntimeError(f"Open-Meteo error: {reason}")
+
+    return data
+
+
+def _current_temperature(data: dict) -> float:
+    for value in data["hourly"]["temperature_2m"]:
+        if value is not None:
+            return float(value)
+    raise RuntimeError("No temperature data in forecast")
+
+
+def fetch_model_temps() -> dict[str, float]:
+    temps: dict[str, float] = {}
+
+    for name, model_id in MODELS.items():
+        params = {
+            "latitude": LAT,
+            "longitude": LON,
+            "hourly": "temperature_2m",
+            "forecast_days": 1,
+            "models": model_id,
+        }
+        response = httpx.get(URL, params=params, timeout=15.0)
+        response.raise_for_status()
+        data = response.json()
+
+        if "hourly" not in data:
+            reason = data.get("reason", "unknown error")
+            raise RuntimeError(f"Open-Meteo error for {name}: {reason}")
+
+        temps[name] = _current_temperature(data)
+
+    return temps
