@@ -113,7 +113,7 @@ async def hourly(message: Message) -> None:
     await message.answer(text)
 
 
-@router.message(lambda m: m.text == "🌤 Сейчас")
+@router.message(lambda m: m.text in {"🌤 Сейчас", "🌤️ Сейчас"})
 async def now(message: Message) -> None:
     try:
         data = fetch_forecast()
@@ -186,7 +186,7 @@ async def today(message: Message) -> None:
     await message.answer(text)
 
 
-@router.message(lambda m: m.text == "🌙 Завтра")
+@router.message(lambda m: m.text in {"🌙 Завтра", "🌤️ Завтра"})
 async def tomorrow(message: Message) -> None:
     try:
         data = fetch_forecast()
