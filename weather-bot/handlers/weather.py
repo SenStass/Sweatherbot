@@ -2,9 +2,40 @@ from aiogram import Router
 from aiogram.types import Message
 
 from api.meteoinfo import fetch_meteoinfo_forecast
-from services.display import format_hourly_forecast
+from services.display import (
+    format_current_weather,
+    format_day_forecast,
+    format_hourly_forecast,
+    format_weekly_forecast,
+)
+from services.openmeteo import fetch_forecast, fetch_model_temps
+from services.consensus import weighted_consensus
 
 router = Router()
+
+
+def get_daily_forecast_value(data: dict, field: str, index: int):
+    daily = data.get("daily", {})
+    values = daily.get(field, [])
+    if index >= len(values):
+        return None
+    return values[index]
+
+
+def _get_first_hourly_value(data: dict, field: str, default=None):
+    hourly = data.get("hourly", {})
+    values = hourly.get(field, [])
+    if not values:
+        return default
+    return values[0]
+
+
+def _get_first_daily_value(data: dict, field: str, default=None):
+    daily = data.get("daily", {})
+    values = daily.get(field, [])
+    if not values:
+        return default
+    return values[0]
 
 
 def build_hourly_forecast_payload(items: list[dict[str, object]]) -> dict[str, list[object]]:
@@ -69,24 +100,148 @@ async def hourly(message: Message) -> None:
 
 @router.message(lambda m: m.text in {"🌤 Сейчас", "🌤️ Сейчас"})
 async def now(message: Message) -> None:
-    await message.answer("Данные о текущей погоде временно недоступны")
+    try:
+        data = fetch_forecast()
+        temp = _get_first_hourly_value(data, "temperature_2m", 0)
+        wind = _get_first_hourly_value(data, "wind_speed_10m", 0)
+        cloud_cover = _get_first_hourly_value(data, "cloud_cover", 0)
+        precipitation_probability = _get_first_hourly_value(data, "precipitation_probability", 0)
+        is_day = _get_first_hourly_value(data, "is_day", 1)
+        sunrise = _get_first_daily_value(data, "sunrise")
+        sunset = _get_first_daily_value(data, "sunset")
+        weather_code = _get_first_hourly_value(data, "weather_code")
+        wind_direction = _get_first_hourly_value(data, "wind_direction_10m")
+        humidity = _get_first_hourly_value(data, "relative_humidity_2m")
+        apparent_temperature = _get_first_hourly_value(data, "apparent_temperature")
+        local_time = data.get("current_weather", {}).get("time")
+    except Exception as exc:
+        await message.answer(f"Не удалось получить погоду: {exc}")
+        return
+
+    text = format_current_weather(
+        temp=temp,
+        wind=wind,
+        cloud_cover=cloud_cover,
+        precipitation_probability=precipitation_probability,
+        is_day=is_day,
+        sunrise=sunrise,
+        sunset=sunset,
+        weather_code=weather_code,
+        wind_direction=wind_direction,
+        humidity=humidity,
+        apparent_temperature=apparent_temperature,
+        local_time=local_time,
+    )
+
+    await message.answer(text)
 
 
 @router.message(lambda m: m.text == "☀️ Сегодня")
 async def today(message: Message) -> None:
-    await message.answer("Данные о прогнозе на сегодня временно недоступны")
+    try:
+        data = fetch_forecast()
+        date_value = get_daily_forecast_value(data, "time", 0)
+        max_temp = get_daily_forecast_value(data, "temperature_2m_max", 0)
+        min_temp = get_daily_forecast_value(data, "temperature_2m_min", 0)
+        precipitation_probability = get_daily_forecast_value(data, "precipitation_probability_mean", 0)
+        cloud_cover = get_daily_forecast_value(data, "cloud_cover_mean", 0)
+        weather_code = get_daily_forecast_value(data, "weather_code", 0)
+        sunrise = get_daily_forecast_value(data, "sunrise", 0)
+        sunset = get_daily_forecast_value(data, "sunset", 0)
+
+        if None in {date_value, max_temp, min_temp, precipitation_probability, cloud_cover}:
+            await message.answer("Прогноз на сегодня пока недоступен.")
+            return
+
+        text = format_day_forecast(
+            title="☀️ Сегодня",
+            date=date_value,
+            max_temp=max_temp,
+            min_temp=min_temp,
+            precipitation_probability=precipitation_probability,
+            cloud_cover=cloud_cover,
+            weather_code=weather_code,
+            sunrise=sunrise,
+            sunset=sunset,
+        )
+    except Exception as exc:
+        await message.answer(f"Не удалось получить прогноз на сегодня: {exc}")
+        return
+
+    await message.answer(text)
 
 
 @router.message(lambda m: m.text in {"🌙 Завтра", "🌤️ Завтра"})
 async def tomorrow(message: Message) -> None:
-    await message.answer("Данные о прогнозе на завтра временно недоступны")
+    try:
+        data = fetch_forecast()
+        date_value = get_daily_forecast_value(data, "time", 1)
+        max_temp = get_daily_forecast_value(data, "temperature_2m_max", 1)
+        min_temp = get_daily_forecast_value(data, "temperature_2m_min", 1)
+        precipitation_probability = get_daily_forecast_value(data, "precipitation_probability_mean", 1)
+        cloud_cover = get_daily_forecast_value(data, "cloud_cover_mean", 1)
+        weather_code = get_daily_forecast_value(data, "weather_code", 1)
+        sunrise = get_daily_forecast_value(data, "sunrise", 1)
+        sunset = get_daily_forecast_value(data, "sunset", 1)
+
+        if None in {date_value, max_temp, min_temp, precipitation_probability, cloud_cover}:
+            await message.answer("Прогноз на завтра пока недоступен.")
+            return
+
+        text = format_day_forecast(
+            title="🌙 Завтра",
+            date=date_value,
+            max_temp=max_temp,
+            min_temp=min_temp,
+            precipitation_probability=precipitation_probability,
+            cloud_cover=cloud_cover,
+            weather_code=weather_code,
+            sunrise=sunrise,
+            sunset=sunset,
+        )
+    except Exception as exc:
+        await message.answer(f"Не удалось получить прогноз на завтра: {exc}")
+        return
+
+    await message.answer(text)
 
 
 @router.message(lambda m: m.text == "📅 Неделя")
 async def weekly(message: Message) -> None:
-    await message.answer("Данные о недельном прогнозе временно недоступны")
+    try:
+        data = fetch_forecast()
+        dates = data["daily"]["time"][:7]
+        max_temps = data["daily"]["temperature_2m_max"][:7]
+        min_temps = data["daily"]["temperature_2m_min"][:7]
+        precipitation_probability = data["daily"]["precipitation_probability_mean"][:7]
+        cloud_cover = data["daily"]["cloud_cover_mean"][:7]
+    except Exception as exc:
+        await message.answer(f"Не удалось получить недельный прогноз: {exc}")
+        return
+
+    text = format_weekly_forecast(
+        dates=dates,
+        max_temps=max_temps,
+        min_temps=min_temps,
+        precipitation_probability=precipitation_probability,
+        cloud_cover=cloud_cover,
+    )
+
+    await message.answer(text)
 
 
 @router.message(lambda m: m.text == "📊 Модели")
 async def models(message: Message) -> None:
-    await message.answer("Модели временно недоступны")
+    try:
+        temps = fetch_model_temps()
+        consensus = weighted_consensus(temps)
+    except Exception as exc:
+        await message.answer(f"Не удалось получить данные моделей: {exc}")
+        return
+
+    text = "📊 Сравнение моделей\n\n"
+    for model, temp in temps.items():
+        text += f"{model.upper()}: {temp:.1f}°\n"
+    text += f"\nКонсенсус: {consensus:.1f}°"
+
+    await message.answer(text)
