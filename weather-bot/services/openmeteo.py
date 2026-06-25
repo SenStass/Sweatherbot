@@ -19,7 +19,10 @@ def fetch_forecast() -> dict:
             "temperature_2m",
             "precipitation_probability",
             "wind_speed_10m",
+            "cloud_cover",
+            "is_day",
         ],
+        "daily": ["sunrise", "sunset"],
         "forecast_days": 3,
     }
 
