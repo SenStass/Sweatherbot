@@ -41,7 +41,7 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("🟡", text)
         self.assertIn("12:34", text)
 
-    def test_hourly_forecast_includes_icons_per_hour(self) -> None:
+    def test_hourly_forecast_includes_header_and_data(self) -> None:
         text = format_hourly_forecast(
             times=["2024-01-01T12:00", "2024-01-01T13:00"],
             temps=[18.4, 19.1],
@@ -53,28 +53,21 @@ class WeatherDisplayTests(unittest.TestCase):
             wind_speed=[4.0, 6.0],
         )
 
+        self.assertIn("📅 01.01.2024", text)
         self.assertIn("12:00", text)
         self.assertIn("13:00", text)
-        self.assertIn("☀️", text)
-        self.assertIn("⛅", text)
-        self.assertIn("☁️", text)
-        self.assertIn("🌧️", text)
-
-    def test_hourly_forecast_uses_column_separators(self) -> None:
-        text = format_hourly_forecast(
-            times=["2024-01-01T12:00"],
-            temps=[18.4],
-            cloud_cover=[40],
-            precipitation_probability=[10],
-            is_day=[1],
-            apparent_temperature=[19.0],
-            humidity=[45],
-            wind_speed=[4.0],
-        )
-
         self.assertIn("Время", text)
-        self.assertIn("Темп.", text)
-        self.assertIn("12:00", text)
+        self.assertIn("Темп", text)
+        self.assertIn("Осадки", text)
+        self.assertIn("Ветер", text)
+        self.assertIn("Влажн", text)
+        self.assertIn("Облачн", text)
+        self.assertIn("+18°", text)
+        self.assertIn("+19°", text)
+        self.assertIn("10%", text)
+        self.assertIn("45%", text)
+        self.assertIn("40%", text)
+        self.assertIn("4 м/с", text)
 
     def test_build_hourly_forecast_payload_from_meteoinfo(self) -> None:
         payload = build_hourly_forecast_payload(

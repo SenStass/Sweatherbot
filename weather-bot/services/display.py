@@ -143,8 +143,21 @@ def format_hourly_forecast(
     humidity: list[int],
     wind_speed: list[float],
 ) -> str:
-    lines = ["🕒 Почасовой прогноз", "", "```"]
-    lines.append("Время  Темп.  Осадки  Ветер  Влажн.  Облачн.")
+    lines = ["🕒 Почасовой прогноз", ""]
+
+    # Add date line from the first time entry
+    if times:
+        try:
+            date_text = datetime.fromisoformat(times[0].replace("Z", "+00:00")).strftime("%d.%m.%Y")
+            lines.append(f"📅 {date_text}")
+            lines.append("")
+        except ValueError:
+            pass
+
+    # All columns use the same fixed width for header and data
+    # col_widths: Время(5) Темп(5) Осадки(6) Ветер(5) Влажн(5) Облачн(6)
+    fmt = "{:<5}  {:>5}  {:>6}  {:>5}  {:>5}  {:>6}"
+    lines.append(fmt.format("Время", "Темп", "Осадки", "Ветер", "Влажн", "Облачн"))
 
     for time, temp, cloud, rain, day, feels_like, humidity_value, wind_value in zip(
         times,
@@ -157,18 +170,14 @@ def format_hourly_forecast(
         wind_speed,
     ):
         hour = time[11:16] if len(time) >= 16 else time
-        cloud_icon = _cloud_icon(cloud)
-        rain_icon = _precipitation_icon(rain)
-        line = (
-            f"{hour}  {temp:+.0f}°  "
-            f"{rain_icon}{rain:>2}%  "
-            f"{wind_value:>2} м/с  "
-            f"{humidity_value:>2}%  "
-            f"{cloud_icon}{cloud:>2}%"
-        )
-        lines.append(line)
-
-    lines.append("```")
+        lines.append(fmt.format(
+            hour,
+            f"{temp:+.0f}°",
+            f"{rain}%",
+            f"{wind_value:.0f} м/с",
+            f"{humidity_value}%",
+            f"{cloud}%",
+        ))
     return "\n".join(lines)
 
 

@@ -104,7 +104,7 @@ async def hourly(message: Message) -> None:
         wind_speed=payload["wind_speed"],
     )
 
-    await message.answer(text)
+    await message.answer(f"<code>\n{text}\n</code>", parse_mode="HTML")
 
 
 @router.message(lambda m: m.text in {"🌤 Сейчас", "🌤️ Сейчас"})
