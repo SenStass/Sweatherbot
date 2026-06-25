@@ -13,6 +13,14 @@ from services.openmeteo import fetch_forecast, fetch_model_temps
 router = Router()
 
 
+def get_daily_forecast_value(data: dict, field: str, index: int):
+    daily = data.get("daily", {})
+    values = daily.get(field, [])
+    if index >= len(values):
+        return None
+    return values[index]
+
+
 @router.message(lambda m: m.text == "🕒 По часам")
 async def hourly(message: Message) -> None:
     try:
@@ -81,15 +89,25 @@ async def now(message: Message) -> None:
 async def today(message: Message) -> None:
     try:
         data = fetch_forecast()
-        daily = data["daily"]
+        date_value = get_daily_forecast_value(data, "time", 0)
+        max_temp = get_daily_forecast_value(data, "temperature_2m_max", 0)
+        min_temp = get_daily_forecast_value(data, "temperature_2m_min", 0)
+        precipitation_probability = get_daily_forecast_value(data, "precipitation_probability_mean", 0)
+        cloud_cover = get_daily_forecast_value(data, "cloud_cover_mean", 0)
+        weather_code = get_daily_forecast_value(data, "weather_code", 0)
+
+        if None in {date_value, max_temp, min_temp, precipitation_probability, cloud_cover}:
+            await message.answer("Прогноз на сегодня пока недоступен.")
+            return
+
         text = format_day_forecast(
             title="☀️ Сегодня",
-            date=daily["time"][0],
-            max_temp=daily["temperature_2m_max"][0],
-            min_temp=daily["temperature_2m_min"][0],
-            precipitation_probability=daily["precipitation_probability_mean"][0],
-            cloud_cover=daily["cloud_cover_mean"][0],
-            weather_code=daily.get("weather_code", [None])[0],
+            date=date_value,
+            max_temp=max_temp,
+            min_temp=min_temp,
+            precipitation_probability=precipitation_probability,
+            cloud_cover=cloud_cover,
+            weather_code=weather_code,
         )
     except Exception as exc:
         await message.answer(f"Не удалось получить прогноз на сегодня: {exc}")
@@ -102,15 +120,25 @@ async def today(message: Message) -> None:
 async def tomorrow(message: Message) -> None:
     try:
         data = fetch_forecast()
-        daily = data["daily"]
+        date_value = get_daily_forecast_value(data, "time", 1)
+        max_temp = get_daily_forecast_value(data, "temperature_2m_max", 1)
+        min_temp = get_daily_forecast_value(data, "temperature_2m_min", 1)
+        precipitation_probability = get_daily_forecast_value(data, "precipitation_probability_mean", 1)
+        cloud_cover = get_daily_forecast_value(data, "cloud_cover_mean", 1)
+        weather_code = get_daily_forecast_value(data, "weather_code", 1)
+
+        if None in {date_value, max_temp, min_temp, precipitation_probability, cloud_cover}:
+            await message.answer("Прогноз на завтра пока недоступен.")
+            return
+
         text = format_day_forecast(
             title="🌙 Завтра",
-            date=daily["time"][1],
-            max_temp=daily["temperature_2m_max"][1],
-            min_temp=daily["temperature_2m_min"][1],
-            precipitation_probability=daily["precipitation_probability_mean"][1],
-            cloud_cover=daily["cloud_cover_mean"][1],
-            weather_code=daily.get("weather_code", [None])[1],
+            date=date_value,
+            max_temp=max_temp,
+            min_temp=min_temp,
+            precipitation_probability=precipitation_probability,
+            cloud_cover=cloud_cover,
+            weather_code=weather_code,
         )
     except Exception as exc:
         await message.answer(f"Не удалось получить прогноз на завтра: {exc}")

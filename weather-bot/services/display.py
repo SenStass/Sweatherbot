@@ -139,8 +139,9 @@ def format_hourly_forecast(
     humidity: list[int],
     wind_speed: list[float],
 ) -> str:
-    lines = ["🕒 Почасовой прогноз", "", "```"]
-    lines.append(f"{'Время':<8} {'Темп.':<8} {'Ощущ.':<8} {'Осадки':<8} {'Ветер':<8} {'Влажн.':<8} {'Облачность':<12}")
+    lines = ["🕒 Почасовой прогноз", ""]
+    header = f"{'Время':<8} {'Темп.':<8} {'Ощущ.':<8} {'Осадки':<8} {'Ветер':<8} {'Влажн.':<8} {'Облачность':<10}"
+    lines.append(header)
 
     for time, temp, cloud, rain, day, feels_like, humidity_value, wind_value in zip(
         times,
@@ -156,11 +157,12 @@ def format_hourly_forecast(
         day_icon = _day_icon(day)
         cloud_icon = _cloud_icon(cloud)
         rain_icon = _precipitation_icon(rain)
-        lines.append(
-            f"{hour:<8} {day_icon} {temp:+.0f}°{'':<4} {feels_like:+.0f}°{'':<4} {rain_icon} {rain:>3}% {wind_value:>4.0f} м/с {humidity_value:>3}% {cloud_icon} {cloud:>3}%"
+        line = (
+            f"{hour:<8} {day_icon} {temp:+.0f}° {feels_like:+.0f}° "
+            f"{rain_icon} {rain:>3}% {wind_value:>4.0f} м/с {humidity_value:>3}% {cloud_icon} {cloud:>3}%"
         )
+        lines.append(line)
 
-    lines.append("```")
     return "\n".join(lines)
 
 
