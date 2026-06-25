@@ -144,10 +144,7 @@ def format_hourly_forecast(
     wind_speed: list[float],
 ) -> str:
     lines = ["🕒 Почасовой прогноз", ""]
-    header = (
-        f"{'Время':<7} | {'Темп.':<6} | {'Осадки':<7} | {'Ветер':<7} | {'Влажн.':<7} | {'Облачн.':<8}"
-    )
-    lines.append(header)
+    lines.append("Время  Темп.  Осадки    Ветер  Влажн.  Облачн.")
 
     for time, temp, cloud, rain, day, feels_like, humidity_value, wind_value in zip(
         times,
@@ -163,8 +160,11 @@ def format_hourly_forecast(
         cloud_icon = _cloud_icon(cloud)
         rain_icon = _precipitation_icon(rain)
         line = (
-            f"{hour:<7} | {temp:+.0f}°{'':<3} | "
-            f"{rain_icon} {rain:>3}% | {wind_value:>4.0f} м/с | {humidity_value:>3}% | {cloud_icon} {cloud:>3}%"
+            f"{hour}  {temp:+.0f}°  "
+            f"{rain_icon} {rain:>2}%  "
+            f"{wind_value:>2} м/с  "
+            f"{humidity_value:>2}%  "
+            f"{cloud_icon} {cloud:>2}%"
         )
         lines.append(line)
 
@@ -207,7 +207,7 @@ def format_weekly_forecast(
     precipitation_probability: list[int],
     cloud_cover: list[int],
 ) -> str:
-    lines = ["📅 Прогноз на 7 дней", "", "Дата  Макс  Мин  Обл.  Осадки"]
+    lines = ["📅 Прогноз на 7 дней", "", "Дата   Макс     Мин     Облачн.  Осадки"]
 
     for date, max_temp, min_temp, rain, cloud in zip(
         dates,
@@ -221,7 +221,10 @@ def format_weekly_forecast(
         rain_icon = _precipitation_icon(rain)
         temp_color = _temperature_color(max_temp)
         lines.append(
-            f"{date_text:<5}  {temp_color} {max_temp:>4.1f}°  {min_temp:>4.1f}°  {cloud_icon} {cloud:>3}%  {rain_icon} {rain:>3}%"
+            f"{date_text}  {temp_color} {max_temp:>5.1f}°  "
+            f"{min_temp:>5.1f}°  "
+            f"{cloud_icon} {cloud:>2}%  "
+            f"{rain_icon} {rain:>2}%"
         )
 
     return "\n".join(lines)

@@ -110,7 +110,7 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("Дата", text)
         self.assertIn("Макс", text)
         self.assertIn("Мин", text)
-        self.assertIn("Обл.", text)
+        self.assertIn("Облачн.", text)
         self.assertIn("Осадки", text)
         self.assertIn("01.01", text)
         self.assertIn("02.01", text)
