@@ -27,7 +27,17 @@ def fetch_forecast() -> dict:
             "apparent_temperature",
             "relative_humidity_2m",
         ],
-        "current_weather": True,
+        "current": [
+            "temperature_2m",
+            "relative_humidity_2m",
+            "apparent_temperature",
+            "is_day",
+            "precipitation_probability",
+            "weather_code",
+            "cloud_cover",
+            "wind_speed_10m",
+            "wind_direction_10m",
+        ],
         "timezone": "auto",
         "daily": [
             "sunrise",
