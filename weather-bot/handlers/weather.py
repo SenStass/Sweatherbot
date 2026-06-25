@@ -78,8 +78,17 @@ def build_hourly_forecast_payload(items: list[dict[str, object]]) -> dict[str, l
 @router.message(lambda m: m.text == "🕒 По часам")
 async def hourly(message: Message) -> None:
     try:
-        meteoinfo_items = await fetch_meteoinfo_forecast()
-        payload = build_hourly_forecast_payload(meteoinfo_items)
+        data = fetch_forecast()
+        payload = {
+            "times": data["hourly"]["time"][:24],
+            "temps": data["hourly"]["temperature_2m"][:24],
+            "cloud_cover": data["hourly"]["cloud_cover"][:24],
+            "precipitation_probability": data["hourly"]["precipitation_probability"][:24],
+            "is_day": data["hourly"]["is_day"][:24],
+            "apparent_temperature": data["hourly"]["apparent_temperature"][:24],
+            "humidity": data["hourly"]["relative_humidity_2m"][:24],
+            "wind_speed": data["hourly"]["wind_speed_10m"][:24],
+        }
     except Exception as exc:
         await message.answer(f"Не удалось получить прогноз: {exc}")
         return
