@@ -24,6 +24,22 @@ def get_daily_forecast_value(data: dict, field: str, index: int):
     return values[index]
 
 
+def _get_first_hourly_value(data: dict, field: str, default=None):
+    hourly = data.get("hourly", {})
+    values = hourly.get(field, [])
+    if not values:
+        return default
+    return values[0]
+
+
+def _get_first_daily_value(data: dict, field: str, default=None):
+    daily = data.get("daily", {})
+    values = daily.get(field, [])
+    if not values:
+        return default
+    return values[0]
+
+
 def build_hourly_forecast_payload(items: list[dict[str, object]]) -> dict[str, list[object]]:
     times: list[str] = []
     temps: list[float] = []
@@ -101,17 +117,17 @@ async def hourly(message: Message) -> None:
 async def now(message: Message) -> None:
     try:
         data = fetch_forecast()
-        temp = data["hourly"]["temperature_2m"][0]
-        wind = data["hourly"]["wind_speed_10m"][0]
-        cloud_cover = data["hourly"]["cloud_cover"][0]
-        precipitation_probability = data["hourly"]["precipitation_probability"][0]
-        is_day = data["hourly"]["is_day"][0]
-        sunrise = data["daily"]["sunrise"][0]
-        sunset = data["daily"]["sunset"][0]
-        weather_code = data["hourly"].get("weather_code", [None])[0]
-        wind_direction = data["hourly"].get("wind_direction_10m", [None])[0]
-        humidity = data["hourly"].get("relative_humidity_2m", [None])[0]
-        apparent_temperature = data["hourly"].get("apparent_temperature", [None])[0]
+        temp = _get_first_hourly_value(data, "temperature_2m", 0)
+        wind = _get_first_hourly_value(data, "wind_speed_10m", 0)
+        cloud_cover = _get_first_hourly_value(data, "cloud_cover", 0)
+        precipitation_probability = _get_first_hourly_value(data, "precipitation_probability", 0)
+        is_day = _get_first_hourly_value(data, "is_day", 1)
+        sunrise = _get_first_daily_value(data, "sunrise")
+        sunset = _get_first_daily_value(data, "sunset")
+        weather_code = _get_first_hourly_value(data, "weather_code")
+        wind_direction = _get_first_hourly_value(data, "wind_direction_10m")
+        humidity = _get_first_hourly_value(data, "relative_humidity_2m")
+        apparent_temperature = _get_first_hourly_value(data, "apparent_temperature")
         local_time = data.get("current_weather", {}).get("time")
     except Exception as exc:
         await message.answer(f"Не удалось получить погоду: {exc}")

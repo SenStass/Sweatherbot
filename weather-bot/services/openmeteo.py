@@ -70,13 +70,16 @@ def fetch_model_temps() -> dict[str, float]:
             "forecast_days": 1,
             "models": model_id,
         }
-        response = httpx.get(URL, params=params, timeout=15.0)
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = httpx.get(URL, params=params, timeout=15.0)
+            response.raise_for_status()
+            data = response.json()
+        except Exception:
+            continue
 
         if "hourly" not in data:
             reason = data.get("reason", "unknown error")
-            raise RuntimeError(f"Open-Meteo error for {name}: {reason}")
+            continue
 
         temps[name] = _current_temperature(data)
 

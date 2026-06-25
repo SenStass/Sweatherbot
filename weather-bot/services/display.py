@@ -207,7 +207,7 @@ def format_weekly_forecast(
     precipitation_probability: list[int],
     cloud_cover: list[int],
 ) -> str:
-    lines = ["📅 Прогноз на 7 дней", "", "Дата | Макс | Мин | Обл. | Осадки"]
+    lines = ["📅 Прогноз на 7 дней", "", "Дата | Макс | Мин | Обл. | Осадки", "-----|-----|-----|-----|------"]
 
     for date, max_temp, min_temp, rain, cloud in zip(
         dates,
