@@ -207,7 +207,7 @@ def format_weekly_forecast(
     precipitation_probability: list[int],
     cloud_cover: list[int],
 ) -> str:
-    lines = ["📅 Прогноз на 7 дней", "", "Дата | Макс | Мин | Обл. | Осадки", "-----|-----|-----|-----|------"]
+    lines = ["📅 Прогноз на 7 дней", "", "Дата  Макс  Мин  Обл.  Осадки"]
 
     for date, max_temp, min_temp, rain, cloud in zip(
         dates,
@@ -221,7 +221,7 @@ def format_weekly_forecast(
         rain_icon = _precipitation_icon(rain)
         temp_color = _temperature_color(max_temp)
         lines.append(
-            f"{date_text:<5} | {temp_color} {max_temp:>4.1f}° | {min_temp:>4.1f}° | {cloud_icon} {cloud:>3}% | {rain_icon} {rain:>3}%"
+            f"{date_text:<5}  {temp_color} {max_temp:>4.1f}°  {min_temp:>4.1f}°  {cloud_icon} {cloud:>3}%  {rain_icon} {rain:>3}%"
         )
 
     return "\n".join(lines)
