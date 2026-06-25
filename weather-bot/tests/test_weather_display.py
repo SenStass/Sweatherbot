@@ -55,6 +55,21 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("☁️", text)
         self.assertIn("🌧️", text)
 
+    def test_hourly_forecast_uses_column_separators(self) -> None:
+        text = format_hourly_forecast(
+            times=["2024-01-01T12:00"],
+            temps=[18.4],
+            cloud_cover=[40],
+            precipitation_probability=[10],
+            is_day=[1],
+            apparent_temperature=[19.0],
+            humidity=[45],
+            wind_speed=[4.0],
+        )
+
+        self.assertIn("Время | Темп.", text)
+        self.assertIn("12:00 |", text)
+
     def test_weekly_forecast_includes_day_summary(self) -> None:
         text = format_weekly_forecast(
             dates=["2024-01-01", "2024-01-02"],
