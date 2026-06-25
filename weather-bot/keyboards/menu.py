@@ -6,7 +6,9 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text="🌤 Сейчас")],
             [KeyboardButton(text="🕒 По часам")],
-            [KeyboardButton(text="☔ Дождь")],
+            [KeyboardButton(text="☀️ Сегодня")],
+            [KeyboardButton(text="🌙 Завтра")],
+            [KeyboardButton(text="📅 Неделя")],
             [KeyboardButton(text="📊 Модели")],
         ],
         resize_keyboard=True,

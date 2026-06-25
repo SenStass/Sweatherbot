@@ -19,11 +19,24 @@ def fetch_forecast() -> dict:
             "temperature_2m",
             "precipitation_probability",
             "wind_speed_10m",
+            "wind_direction_10m",
             "cloud_cover",
             "is_day",
+            "weather_code",
+            "apparent_temperature",
+            "relative_humidity_2m",
         ],
-        "daily": ["sunrise", "sunset"],
-        "forecast_days": 3,
+        "current_weather": True,
+        "timezone": "auto",
+        "daily": [
+            "sunrise",
+            "sunset",
+            "temperature_2m_max",
+            "temperature_2m_min",
+            "precipitation_probability_mean",
+            "cloud_cover_mean",
+        ],
+        "forecast_days": 7,
     }
 
     response = httpx.get(URL, params=params, timeout=15.0)
