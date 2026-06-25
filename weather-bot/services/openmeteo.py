@@ -6,10 +6,9 @@ URL = "https://api.open-meteo.com/v1/forecast"
 
 MODELS = {
     "ecmwf": "ecmwf_ifs025",
-    "icon": "icon_seamless",
+    "icon-eu": "icon_eu",
     "gfs": "gfs_seamless",
-    "slav": "slav",
-    "wrf": "wrf",
+    "arpEGE": "arpEGE",
 }
 
 

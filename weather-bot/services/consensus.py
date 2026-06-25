@@ -1,10 +1,9 @@
 def weighted_consensus(values):
     weights = {
         "ecmwf": 0.45,
-        "icon": 0.35,
-        "gfs": 0.20,
-        "slav": 0.25,
-        "wrf": 0.15
+        "icon-eu": 0.30,
+        "gfs": 0.15,
+        "arpEGE": 0.10,
     }
 
     result = 0

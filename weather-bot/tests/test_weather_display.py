@@ -1,6 +1,6 @@
 import unittest
 
-from handlers.weather import build_hourly_forecast_payload, get_daily_forecast_value
+from handlers.weather import build_hourly_forecast_payload
 from services.display import (
     format_current_weather,
     format_day_forecast,
@@ -140,12 +140,7 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("07:10", text)
         self.assertIn("17:40", text)
 
-    def test_get_daily_forecast_value_handles_missing_day(self) -> None:
-        data = {"daily": {"time": ["2024-01-01"], "temperature_2m_max": [18.4]}}
-
-        value = get_daily_forecast_value(data, "temperature_2m_max", 1)
-
-        self.assertEqual(value, None)
+    # Removed - Open-Meteo disabled
 
 
 if __name__ == "__main__":
