@@ -140,7 +140,7 @@ def format_hourly_forecast(
     wind_speed: list[float],
 ) -> str:
     lines = ["🕒 Почасовой прогноз", ""]
-    header = "Время | Темп. | Ощущ. | Осадки | Ветер | Влажн. | Облачность"
+    header = "Время | Темп. | Ощущ. | Осадки | Ветер | Влажн. | Облачн."
     lines.append(header)
 
     for time, temp, cloud, rain, day, feels_like, humidity_value, wind_value in zip(
