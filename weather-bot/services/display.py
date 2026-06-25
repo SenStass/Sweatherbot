@@ -100,9 +100,11 @@ def format_current_weather(
     wind: float,
     cloud_cover: int,
     precipitation_probability: int,
-    is_day: int,
-    sunrise: str,
-    sunset: str,
+    humidity: Optional[int] = None,
+    apparent_temperature: Optional[float] = None,
+    is_day: int = 1,
+    sunrise: Optional[str] = None,
+    sunset: Optional[str] = None,
     weather_code: Optional[int] = None,
     wind_direction: Optional[int] = None,
     local_time: Optional[str] = None,
@@ -115,17 +117,19 @@ def format_current_weather(
     wind_icon = _wind_icon(wind_direction)
     temp_color = _temperature_color(temp)
     local_time_text = _format_time(local_time) if local_time else "-"
+    humidity_text = f"{humidity}%" if humidity is not None else "-"
+    apparent_temperature_text = f"{apparent_temperature:.1f}°" if apparent_temperature is not None else "-"
 
     return (
         f"🌤 Сейчас\n\n"
         f"{day_icon} Температура: {temp_color} {temp:.1f}°\n"
         f"{cloud_icon} Облачность: {cloud_cover}%\n"
         f"{rain_icon} Дождь: {precipitation_probability}%\n"
+        f"💧 Влажность: {humidity_text}\n"
+        f"🫠 Ощущается: {apparent_temperature_text}\n"
         f"{wind_icon} Ветер: {wind:.1f} м/с"
         f"  {wind_direction}°\n"
-        f"🕒 Локальное время: {local_time_text}\n"
-        f"🌅 Восход: {sunrise_text}\n"
-        f"🌇 Закат: {sunset_text}"
+        f"🕒 Локальное время: {local_time_text}"
     )
 
 
@@ -140,7 +144,9 @@ def format_hourly_forecast(
     wind_speed: list[float],
 ) -> str:
     lines = ["🕒 Почасовой прогноз", ""]
-    header = "Время | Темп. | Ощущ. | Осадки | Ветер | Влажн. | Облачн."
+    header = (
+        f"{'Время':<7} | {'Темп.':<6} | {'Осадки':<7} | {'Ветер':<7} | {'Влажн.':<7} | {'Облачн.':<8}"
+    )
     lines.append(header)
 
     for time, temp, cloud, rain, day, feels_like, humidity_value, wind_value in zip(
@@ -153,12 +159,11 @@ def format_hourly_forecast(
         humidity,
         wind_speed,
     ):
-        hour = time[11:16]
-        day_icon = _day_icon(day)
+        hour = time[11:16] if len(time) >= 16 else time
         cloud_icon = _cloud_icon(cloud)
         rain_icon = _precipitation_icon(rain)
         line = (
-            f"{hour} | {day_icon} {temp:+.0f}° | {feels_like:+.0f}° | "
+            f"{hour:<7} | {temp:+.0f}°{'':<3} | "
             f"{rain_icon} {rain:>3}% | {wind_value:>4.0f} м/с | {humidity_value:>3}% | {cloud_icon} {cloud:>3}%"
         )
         lines.append(line)
@@ -174,18 +179,24 @@ def format_day_forecast(
     precipitation_probability: int,
     cloud_cover: int,
     weather_code: Optional[int] = None,
+    sunrise: Optional[str] = None,
+    sunset: Optional[str] = None,
 ) -> str:
     date_text = datetime.fromisoformat(date).strftime("%d.%m")
     cloud_icon = _cloud_icon(cloud_cover)
     rain_icon = _precipitation_icon(precipitation_probability, weather_code)
     temp_color = _temperature_color(max_temp)
+    sunrise_text = _format_time(sunrise) if sunrise else "-"
+    sunset_text = _format_time(sunset) if sunset else "-"
 
     return (
         f"{title}\n\n"
         f"📅 {date_text}\n"
         f"{temp_color} Макс: {max_temp:.1f}°  Мин: {min_temp:.1f}°\n"
         f"{cloud_icon} Облачность: {cloud_cover}%\n"
-        f"{rain_icon} Осадки: {precipitation_probability}%"
+        f"{rain_icon} Осадки: {precipitation_probability}%\n"
+        f"🌅 Восход: {sunrise_text}\n"
+        f"🌇 Закат: {sunset_text}"
     )
 
 
@@ -196,7 +207,7 @@ def format_weekly_forecast(
     precipitation_probability: list[int],
     cloud_cover: list[int],
 ) -> str:
-    lines = ["📅 Прогноз на 7 дней\n"]
+    lines = ["📅 Прогноз на 7 дней", "", "Дата | Макс | Мин | Обл. | Осадки"]
 
     for date, max_temp, min_temp, rain, cloud in zip(
         dates,
@@ -210,7 +221,7 @@ def format_weekly_forecast(
         rain_icon = _precipitation_icon(rain)
         temp_color = _temperature_color(max_temp)
         lines.append(
-            f"{date_text}  {temp_color} {max_temp:.1f}°/{min_temp:.1f}°  {cloud_icon} {cloud}%  {rain_icon} {rain}%"
+            f"{date_text:<5} | {temp_color} {max_temp:>4.1f}° | {min_temp:>4.1f}° | {cloud_icon} {cloud:>3}% | {rain_icon} {rain:>3}%"
         )
 
     return "\n".join(lines)

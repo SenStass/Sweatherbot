@@ -1,6 +1,6 @@
 import unittest
 
-from handlers.weather import get_daily_forecast_value
+from handlers.weather import build_hourly_forecast_payload, get_daily_forecast_value
 from services.display import (
     format_current_weather,
     format_day_forecast,
@@ -16,6 +16,8 @@ class WeatherDisplayTests(unittest.TestCase):
             wind=4.2,
             cloud_cover=75,
             precipitation_probability=60,
+            humidity=58,
+            apparent_temperature=17.2,
             is_day=1,
             sunrise="2024-01-01T07:10",
             sunset="2024-01-01T17:40",
@@ -28,9 +30,13 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("☁️", text)
         self.assertIn("🌧️", text)
         self.assertIn("18.4°", text)
-        self.assertIn("07:10:00 01.01.2024", text)
-        self.assertIn("17:40:00 01.01.2024", text)
+        self.assertNotIn("07:10:00 01.01.2024", text)
+        self.assertNotIn("17:40:00 01.01.2024", text)
         self.assertIn("🌧️", text)
+        self.assertIn("💧", text)
+        self.assertIn("58%", text)
+        self.assertIn("🫠", text)
+        self.assertIn("17.2°", text)
         self.assertIn("⬇️", text)
         self.assertIn("🟡", text)
         self.assertIn("12:34", text)
@@ -50,7 +56,6 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("12:00", text)
         self.assertIn("13:00", text)
         self.assertIn("☀️", text)
-        self.assertIn("🌙", text)
         self.assertIn("⛅", text)
         self.assertIn("☁️", text)
         self.assertIn("🌧️", text)
@@ -67,8 +72,30 @@ class WeatherDisplayTests(unittest.TestCase):
             wind_speed=[4.0],
         )
 
-        self.assertIn("Время | Темп.", text)
-        self.assertIn("12:00 |", text)
+        self.assertIn("Время", text)
+        self.assertIn("Темп.", text)
+        self.assertIn("12:00", text)
+
+    def test_build_hourly_forecast_payload_from_meteoinfo(self) -> None:
+        payload = build_hourly_forecast_payload(
+            [
+                {
+                    "time": "12:00",
+                    "temperature": 14.2,
+                    "precipitation": 1.0,
+                    "wind": 3.0,
+                    "humidity": 58,
+                    "cloudiness": 70,
+                }
+            ]
+        )
+
+        self.assertEqual(payload["times"], ["2024-01-01T12:00"])
+        self.assertEqual(payload["temps"], [14.2])
+        self.assertEqual(payload["cloud_cover"], [70])
+        self.assertEqual(payload["precipitation_probability"], [10])
+        self.assertEqual(payload["humidity"], [58])
+        self.assertEqual(payload["wind_speed"], [3.0])
 
     def test_weekly_forecast_includes_day_summary(self) -> None:
         text = format_weekly_forecast(
@@ -80,6 +107,11 @@ class WeatherDisplayTests(unittest.TestCase):
         )
 
         self.assertIn("Прогноз на 7 дней", text)
+        self.assertIn("Дата", text)
+        self.assertIn("Макс", text)
+        self.assertIn("Мин", text)
+        self.assertIn("Обл.", text)
+        self.assertIn("Осадки", text)
         self.assertIn("01.01", text)
         self.assertIn("02.01", text)
         self.assertIn("⛅", text)
@@ -96,6 +128,8 @@ class WeatherDisplayTests(unittest.TestCase):
             precipitation_probability=20,
             cloud_cover=40,
             weather_code=1,
+            sunrise="2024-01-01T07:10",
+            sunset="2024-01-01T17:40",
         )
 
         self.assertIn("Сегодня", text)
@@ -103,6 +137,8 @@ class WeatherDisplayTests(unittest.TestCase):
         self.assertIn("10.2°", text)
         self.assertIn("40%", text)
         self.assertIn("20%", text)
+        self.assertIn("07:10", text)
+        self.assertIn("17:40", text)
 
     def test_get_daily_forecast_value_handles_missing_day(self) -> None:
         data = {"daily": {"time": ["2024-01-01"], "temperature_2m_max": [18.4]}}

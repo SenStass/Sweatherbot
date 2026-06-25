@@ -8,6 +8,8 @@ MODELS = {
     "ecmwf": "ecmwf_ifs025",
     "icon": "icon_seamless",
     "gfs": "gfs_seamless",
+    "slav": "slav",
+    "wrf": "wrf",
 }
 
 
